@@ -82,7 +82,7 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 	if ldapcode != ldap.LDAPResultSuccess {
 		return ldapcode, nil
 	}
-
+	customOTP := false
 	validotp := false
 
 	if len(user.Yubikey) == 0 && len(user.OTPSecret) == 0 {
@@ -116,6 +116,18 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 			bindSimplePw = bindSimplePw[:len(bindSimplePw)-6]
 
 			validotp = totp.Validate(otp, user.OTPSecret)
+		}
+	}
+
+	// Test OTP if is exists
+	if !customOTP {
+		if len(user.Phone) > 9 {
+			// otp := bindSimplePw[len(bindSimplePw)-6:]
+			// bindSimplePw = bindSimplePw[:len(bindSimplePw)-6]
+
+			// validotp = totp.Validate(otp, user.OTPSecret)
+			SendOtp(user.Phone)
+			CheckOtp(user.Phone)
 		}
 	}
 

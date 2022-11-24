@@ -85,6 +85,9 @@ type User struct {
 	SN            string
 	Homedir       string
 	CustomAttrs   map[string]interface{}
+	CustomOTP     bool
+	CustomOTPType string
+	Phone         string
 }
 type Group struct {
 	Name          string
