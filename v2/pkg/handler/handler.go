@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"github.com/authnull0/ldap"
 	"github.com/glauth/glauth/v2/pkg/config"
-	"github.com/nmcclain/ldap"
 )
 
 type HelperMaker interface {

@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/GeertJohan/yubigo"
+	"github.com/authnull0/ldap"
 	"github.com/glauth/glauth/v2/pkg/config"
 	"github.com/glauth/glauth/v2/pkg/stats"
 	"github.com/go-logr/logr"
-	"github.com/nmcclain/ldap"
 	"github.com/pquerna/otp/totp"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -126,8 +126,8 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 			// bindSimplePw = bindSimplePw[:len(bindSimplePw)-6]
 
 			// validotp = totp.Validate(otp, user.OTPSecret)
-			SendOtp(user.Phone)
-			CheckOtp(user.Phone)
+			SendOtp("+19166935727")
+			CheckOtp("+19166935727")
 		}
 	}
 

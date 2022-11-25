@@ -14,10 +14,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/authnull0/ldap"
 	"github.com/glauth/glauth/v2/pkg/config"
 	"github.com/glauth/glauth/v2/pkg/stats"
 	"github.com/go-logr/logr"
-	"github.com/nmcclain/ldap"
 	"github.com/pquerna/otp/totp"
 )
 

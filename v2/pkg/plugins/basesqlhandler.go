@@ -13,11 +13,11 @@ import (
 	"strings"
 
 	"github.com/GeertJohan/yubigo"
+	"github.com/authnull0/ldap"
 	"github.com/glauth/glauth/v2/pkg/config"
 	"github.com/glauth/glauth/v2/pkg/handler"
 	"github.com/glauth/glauth/v2/pkg/stats"
 	"github.com/go-logr/logr"
-	"github.com/nmcclain/ldap"
 )
 
 var configattributematcher = regexp.MustCompile(`(?i)\((?P<attribute>[a-zA-Z0-9]+)\s*=\s*(?P<value>.*)\)`)
