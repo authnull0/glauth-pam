@@ -625,33 +625,34 @@ func (l LDAPOpsHelper) findUser(h LDAPOpsHandler, bindDN string, checkGroup bool
 			}
 			return nil, ldap.LDAPResultInvalidCredentials
 		}
-
+		fmt.Println(groupName)
 		// find the user
 		var foundUser bool // = false
 		foundUser, user, _ = h.FindUser(userName, false)
+		fmt.Println(user.Mail)
 		if !foundUser {
 			h.GetLog().V(2).Info("User not found", "username", userName)
 			return nil, ldap.LDAPResultInvalidCredentials
 		}
-		if checkGroup {
-			// find the group
-			var group config.Group // = nil
-			var foundGroup bool    // = false
-			if groupName != "" {
-				foundGroup, group, _ = h.FindGroup(groupName)
-				if !foundGroup {
-					h.GetLog().V(2).Info("Group not found", "groupname", groupName)
-					return nil, ldap.LDAPResultInvalidCredentials
-				}
-			}
-			// validate group membership
-			if foundGroup {
-				if user.PrimaryGroup != group.GIDNumber {
-					h.GetLog().V(2).Info("primary group mismatch", "username", userName, "primarygroup", user.PrimaryGroup, "groupid", group.GIDNumber)
-					return nil, ldap.LDAPResultInvalidCredentials
-				}
-			}
-		}
+		// if checkGroup {
+		// 	// find the group
+		// 	var group config.Group // = nil
+		// 	var foundGroup bool    // = false
+		// 	if groupName != "" {
+		// 		foundGroup, group, _ = h.FindGroup(groupName)
+		// 		if !foundGroup {
+		// 			h.GetLog().V(2).Info("Group not found", "groupname", groupName)
+		// 			return nil, ldap.LDAPResultInvalidCredentials
+		// 		}
+		// 	}
+		// 	// validate group membership
+		// 	if foundGroup {
+		// 		if user.PrimaryGroup != group.GIDNumber {
+		// 			h.GetLog().V(2).Info("primary group mismatch", "username", userName, "primarygroup", user.PrimaryGroup, "groupid", group.GIDNumber)
+		// 			return nil, ldap.LDAPResultInvalidCredentials
+		// 		}
+		// 	}
+		// }
 	}
 	return &user, ldap.LDAPResultSuccess
 }

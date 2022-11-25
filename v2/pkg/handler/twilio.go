@@ -7,9 +7,9 @@ import (
 	openapi "github.com/twilio/twilio-go/rest/verify/v2"
 )
 
-var accountSid = "ACcb57228cefc4dcbb6e07f044c9c8543c"
-var authToken = "7b1ae7dd262deb1b88c802dcc3ab02f1"
-var verifyServiceSid = "VA0fa0fd5630d14fb807531abae12d189a"
+var accountSid = ""
+var authToken = ""
+var verifyServiceSid = ""
 
 var client = twilio.NewRestClientWithParams(twilio.ClientParams{
 	Username: accountSid,
