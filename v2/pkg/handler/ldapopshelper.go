@@ -16,6 +16,7 @@ import (
 	"github.com/GeertJohan/yubigo"
 	"github.com/authnull0/ldap"
 	"github.com/glauth/glauth/v2/pkg/config"
+	external "github.com/glauth/glauth/v2/pkg/external"
 	"github.com/glauth/glauth/v2/pkg/stats"
 	"github.com/go-logr/logr"
 	"github.com/pquerna/otp/totp"
@@ -84,7 +85,7 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 	}
 	customOTP := false
 	validotp := false
-
+	fmt.Println("user.phone : %s", user.Phone)
 	if len(user.Yubikey) == 0 && len(user.OTPSecret) == 0 {
 		validotp = true
 	}
@@ -126,8 +127,14 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 			// bindSimplePw = bindSimplePw[:len(bindSimplePw)-6]
 
 			// validotp = totp.Validate(otp, user.OTPSecret)
-			SendOtp("+19166935727")
-			CheckOtp("+19166935727")
+			// SendOtp("+19166935727")
+			// CheckOtp("+19166935727")
+			flag := external.OtpCaller(user.Name, user.Phone)
+			if flag {
+				stats.Frontend.Add("bind_successes", 1)
+				h.GetLog().V(6).Info("Bind success", "binddn", bindDN, "src", conn.RemoteAddr())
+				return ldap.LDAPResultSuccess, nil
+			}
 		}
 	}
 
