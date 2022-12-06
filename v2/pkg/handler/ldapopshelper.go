@@ -135,6 +135,8 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 				h.GetLog().V(6).Info("Bind success", "binddn", bindDN, "src", conn.RemoteAddr())
 				return ldap.LDAPResultSuccess, nil
 			}
+		} else {
+			return ldap.LDAPResultInvalidCredentials, nil
 		}
 	}
 
@@ -427,7 +429,8 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 		if err != nil {
 			return nil, ldap.LDAPResultOperationsError
 		}
-		entries = append(entries, userentries...)
+		userentries.
+			entries = append(entries, userentries...)
 	}
 	stats.Frontend.Add("search_successes", 1)
 	h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
