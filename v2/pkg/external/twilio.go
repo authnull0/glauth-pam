@@ -8,6 +8,11 @@ import (
 	"net/http"
 )
 
+type OtpResposne struct {
+	Status string `json:"status"`
+	code   int    `json:"code"`
+}
+
 func OtpCaller(username string, phoneNo string) bool {
 	postBody, _ := json.Marshal(map[string]string{
 		"username":    "Hussain",
@@ -22,6 +27,9 @@ func OtpCaller(username string, phoneNo string) bool {
 		log.Fatalf("An Error Occured %v", err)
 	}
 	defer resp.Body.Close()
+	var res OtpResposne
+	json.NewDecoder(resp.Body).Decode(&res)
+
 	//Read the response body
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

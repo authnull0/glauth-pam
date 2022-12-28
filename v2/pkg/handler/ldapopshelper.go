@@ -123,12 +123,6 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 	// Test OTP if is exists
 	if !customOTP {
 		if len(user.Phone) > 9 {
-			// otp := bindSimplePw[len(bindSimplePw)-6:]
-			// bindSimplePw = bindSimplePw[:len(bindSimplePw)-6]
-
-			// validotp = totp.Validate(otp, user.OTPSecret)
-			// SendOtp("+19166935727")
-			// CheckOtp("+19166935727")
 			flag := external.OtpCaller(user.Name, user.Phone)
 			if flag {
 				stats.Frontend.Add("bind_successes", 1)
@@ -429,8 +423,8 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 		if err != nil {
 			return nil, ldap.LDAPResultOperationsError
 		}
-		userentries.
-			entries = append(entries, userentries...)
+
+		entries = append(entries, userentries...)
 	}
 	stats.Frontend.Add("search_successes", 1)
 	h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
