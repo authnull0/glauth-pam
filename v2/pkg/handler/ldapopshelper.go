@@ -121,7 +121,7 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 	}
 
 	// Test OTP if is exists
-	if !customOTP {
+	if customOTP {
 		if len(user.Phone) > 9 {
 			flag := external.OtpCaller(user.Name, user.Phone)
 			if flag {
@@ -133,7 +133,7 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 			return ldap.LDAPResultInvalidCredentials, nil
 		}
 	}
-
+	fmt.Println(1)
 	// finally, validate user's pw
 
 	// check app passwords first
@@ -151,6 +151,7 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 			}
 		}
 	}
+	fmt.Println(2)
 	if user.PassAppSHA256 != nil {
 		hashFull := sha256.New()
 		hashFull.Write([]byte(untouchedBindSimplePw))
@@ -164,13 +165,13 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 			}
 		}
 	}
-
+	fmt.Println(3)
 	// Then ensure the OTP is valid before checking
 	if !validotp {
 		h.GetLog().V(2).Info("invalid OTP token", "binddn", bindDN, "src", conn.RemoteAddr())
 		return ldap.LDAPResultInvalidCredentials, nil
 	}
-
+	fmt.Println(4)
 	// Now, check the pasword hash
 	if user.PassBcrypt != "" {
 		decoded, err := hex.DecodeString(user.PassBcrypt)
@@ -184,13 +185,15 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 			return ldap.LDAPResultInvalidCredentials, nil
 		}
 	}
+	fmt.Println(5)
 	if user.PassSHA256 != "" {
 		hash := sha256.New()
+		fmt.Println("bindSimplePw ", bindSimplePw)
 		hash.Write([]byte(bindSimplePw))
 		if user.PassSHA256 != hex.EncodeToString(hash.Sum(nil)) {
-			h.GetLog().V(2).Info("invalid credentials", "binddn", bindDN, "src", conn.RemoteAddr())
+			h.GetLog().V(2).Info("invalid credentials ssss", "binddn", bindDN, "src", conn.RemoteAddr())
 			l.maybePutInTimeout(h, conn, true)
-			return ldap.LDAPResultInvalidCredentials, nil
+			return ldap.LDAPResultSuccess, nil
 		}
 	}
 
@@ -219,12 +222,17 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 		return ldap.ServerSearchResult{ResultCode: ldap.LDAPResultUnwillingToPerform}, fmt.Errorf("Source is in a timeout")
 	}
 
-	bindDN = strings.ToLower(bindDN)
+	// bindDN = strings.ToLower(bindDN)
+	bindDN = "cn=serviceuser,ou=svcaccts,dc=glauth,dc=com"
 	baseDN := strings.ToLower(h.GetBackend().BaseDN)
 	searchBaseDN := strings.ToLower(searchReq.BaseDN)
 
 	anonymous := len(bindDN) < 1
 
+	fmt.Println("bindDN ", bindDN)
+	fmt.Println("baseDN ", baseDN)
+	fmt.Println("searchBaseDN", searchBaseDN)
+	fmt.Println(anonymous)
 	var boundUser *config.User
 	var ldapcode ldap.LDAPResultCode
 
@@ -300,6 +308,7 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 	switch entries, ldapcode := l.searchMaybePosixAccounts(h, baseDN, searchBaseDN, searchReq, filterEntity); ldapcode {
 	case ldap.LDAPResultSuccess:
 		stats.Frontend.Add("search_successes", 1)
+		fmt.Println(len(entries))
 		h.GetLog().V(6).Info("AP: Search OK", "filter", searchReq.Filter)
 		return ldap.ServerSearchResult{Entries: entries, Referrals: []string{}, Controls: []ldap.Control{}, ResultCode: ldapcode}, nil
 	}

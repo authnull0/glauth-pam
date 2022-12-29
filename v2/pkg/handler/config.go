@@ -113,12 +113,12 @@ func (h configHandler) FindGroup(groupName string) (f bool, g config.Group, err 
 
 func (h configHandler) FindPosixAccounts(hierarchy string) (entrylist []*ldap.Entry, err error) {
 	entries := []*ldap.Entry{}
-
+	fmt.Println("FindPosixAccounts")
 	for _, u := range h.cfg.Users {
 		attrs := []*ldap.EntryAttribute{}
 		attrs = append(attrs, &ldap.EntryAttribute{Name: "cn", Values: []string{u.Name}})
 		attrs = append(attrs, &ldap.EntryAttribute{Name: "uid", Values: []string{u.Name}})
-
+		fmt.Println(u.Name)
 		if len(u.GivenName) > 0 {
 			attrs = append(attrs, &ldap.EntryAttribute{Name: "givenName", Values: []string{u.GivenName}})
 		}
@@ -199,7 +199,7 @@ func (h configHandler) FindPosixAccounts(hierarchy string) (entrylist []*ldap.En
 		}
 		entries = append(entries, &ldap.Entry{DN: dn, Attributes: attrs})
 	}
-
+	fmt.Println("FindPosixAccounts")
 	return entries, nil
 }
 
