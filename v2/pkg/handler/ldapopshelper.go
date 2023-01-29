@@ -312,7 +312,7 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 		h.GetLog().V(6).Info("AP: Search OK", "filter", searchReq.Filter)
 		return ldap.ServerSearchResult{Entries: entries, Referrals: []string{}, Controls: []ldap.Control{}, ResultCode: ldapcode}, nil
 	}
-
+	h.GetLog().V(6).Info("Test message", 1)
 	// So, this should be an ERROR condition! Right..?
 	entries := []*ldap.Entry{}
 	return ldap.ServerSearchResult{Entries: entries, Referrals: []string{}, Controls: []ldap.Control{}, ResultCode: ldap.LDAPResultSuccess}, nil
