@@ -26,4 +26,5 @@ require (
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 	gopkg.in/amz.v3 v3.0.0-20201001071545-24fc1eceb27b
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5
 )

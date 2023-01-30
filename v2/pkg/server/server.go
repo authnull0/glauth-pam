@@ -26,7 +26,7 @@ func NewServer(opts ...Option) (*LdapSvc, error) {
 		log: options.Logger,
 		c:   options.Config,
 	}
-
+	var sync Sync
 	var err error
 
 	if len(s.c.YubikeyClientID) > 0 && len(s.c.YubikeySecret) > 0 {
@@ -40,7 +40,7 @@ func NewServer(opts ...Option) (*LdapSvc, error) {
 	var helper handler.Handler
 
 	loh := handler.NewLDAPOpsHelper()
-
+	
 	// instantiate the helper, if any
 	if s.c.Helper.Enabled {
 		switch s.c.Helper.Datastore {
@@ -51,6 +51,7 @@ func NewServer(opts ...Option) (*LdapSvc, error) {
 				handler.YubiAuth(s.yubiAuth),
 				handler.LDAPHelper(loh),
 			)
+			
 		case "plugin":
 			plug, err := plugin.Open(s.c.Helper.Plugin)
 			if err != nil {
@@ -108,6 +109,7 @@ func NewServer(opts ...Option) (*LdapSvc, error) {
 				handler.YubiAuth(s.yubiAuth),
 				handler.LDAPHelper(loh),
 			)
+			sync.Run()
 		case "plugin":
 			plug, err := plugin.Open(backend.Plugin)
 			if err != nil {
