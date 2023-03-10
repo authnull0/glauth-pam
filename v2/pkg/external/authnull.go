@@ -13,7 +13,7 @@ type Authnull struct {
 }
 
 const (
-	DoAuthentication = "do-authentication"
+	DoAuthentication = "/do-authentication"
 )
 
 type DoAuthenticationRequest struct {
