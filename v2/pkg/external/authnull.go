@@ -40,7 +40,7 @@ func (a Authnull) FetchUsers() {}
 
 func (a Authnull) CallAuthService(username, groupName string) *DoAuthenticationResponse {
 	fmt.Println("Calling Authnull.DoAuthentication")
-	url := a.AuthNBasePath + DoAuthentication
+	url := "https://api.did.kloudlearn.com/authnull0/api/v1/authn" + DoAuthentication
 	client := &http.Client{}
 	jsonPayload, err := json.Marshal(DoAuthenticationRequest{
 		Username:     username,
