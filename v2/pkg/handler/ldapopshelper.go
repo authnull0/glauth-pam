@@ -434,9 +434,11 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 		}
 
 		entries = append(entries, userentries...)
+
 	}
 	stats.Frontend.Add("search_successes", 1)
 	h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
+
 	return entries, ldap.LDAPResultSuccess
 }
 

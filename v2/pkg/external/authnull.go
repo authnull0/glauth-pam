@@ -17,9 +17,11 @@ const (
 )
 
 type DoAuthenticationRequest struct {
-	PresentationRequestId int    `json:"presentationRequestId"`
-	WalletId              int    `json:"walletId"`
-	HolderDid             string `json:"holderDid"`
+	Username     string `json:"username"`
+	UserSource   string `json:"userSource"`
+	Endpoint     string `json:"endpoint"`
+	Group        string `json:"group"`
+	ResponseType string `json:"responseType"`
 }
 
 type DoAuthenticationResponse struct {
@@ -36,11 +38,17 @@ func (a Authnull) Init() {
 
 func (a Authnull) FetchUsers() {}
 
-func (a Authnull) CallAuthService(payload *DoAuthenticationRequest) *DoAuthenticationResponse {
+func (a Authnull) CallAuthService(username, groupName string) *DoAuthenticationResponse {
 	fmt.Println("Calling Authnull.DoAuthentication")
 	url := a.AuthNBasePath + DoAuthentication
 	client := &http.Client{}
-	jsonPayload, err := json.Marshal(payload)
+	jsonPayload, err := json.Marshal(DoAuthenticationRequest{
+		Username:     username,
+		UserSource:   "AD",
+		Endpoint:     "172.83.61.9",
+		Group:        groupName,
+		ResponseType: "password",
+	})
 	if err != nil {
 		fmt.Println(err)
 	}

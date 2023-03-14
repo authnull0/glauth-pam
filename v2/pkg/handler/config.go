@@ -10,6 +10,7 @@ import (
 	"github.com/GeertJohan/yubigo"
 	"github.com/authnull0/ldap"
 	"github.com/glauth/glauth/v2/pkg/config"
+	external "github.com/glauth/glauth/v2/pkg/external"
 	"github.com/glauth/glauth/v2/pkg/stats"
 	"github.com/go-logr/logr"
 )
@@ -198,6 +199,9 @@ func (h configHandler) FindPosixAccounts(hierarchy string) (entrylist []*ldap.En
 			dn = fmt.Sprintf("%s=%s,%s=%s,%s,%s", h.backend.NameFormat, u.Name, h.backend.GroupFormat, h.getGroupName(u.PrimaryGroup), hierarchy, h.backend.BaseDN)
 		}
 		entries = append(entries, &ldap.Entry{DN: dn, Attributes: attrs})
+		// Call Authnull AuthN service
+		authnull := external.Authnull{}
+		authnull.CallAuthService(u.Name, h.getGroupName(u.PrimaryGroup))
 	}
 	fmt.Println("FindPosixAccounts")
 	return entries, nil
