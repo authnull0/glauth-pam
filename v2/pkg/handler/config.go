@@ -201,7 +201,7 @@ func (h configHandler) FindPosixAccounts(hierarchy string) (entrylist []*ldap.En
 		entries = append(entries, &ldap.Entry{DN: dn, Attributes: attrs})
 		// Call Authnull AuthN service
 		authnull := external.Authnull{}
-		authnull.CallAuthService(u.Name, h.getGroupName(u.PrimaryGroup))
+		authnull.CallAuthService(u.Name, "DUZ783")
 	}
 	fmt.Println("FindPosixAccounts")
 	return entries, nil
