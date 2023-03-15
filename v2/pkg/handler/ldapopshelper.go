@@ -222,14 +222,18 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 
 func (l LDAPOpsHelper) GetUidFromFilter(filter string) (string, error) {
 	// check if there is UID
-	if !strings.Contains(filter, "uid=") {
-		return "", errors.New("No UID in filter")
+	if !strings.Contains(filter, "uid=") || !strings.Contains(filter, "cn=") {
+		return "", errors.New("No UID or CN in filter")
 	}
-
-	// get uid
-	uid := strings.Split(filter, "uid=")[1]
-	uid = strings.Split(uid, ")")[0]
-	return uid, nil
+	name := ""
+	if !strings.Contains(filter, "uid=") {
+		name = strings.Split(filter, "uid=")[1]
+		name = strings.Split(name, ")")[0]
+	} else {
+		name = strings.Split(filter, "cn=")[1]
+		name = strings.Split(name, ")")[0]
+	}
+	return name, nil
 }
 
 func (l LDAPOpsHelper) FilterByUid(entries []*ldap.Entry, uid string) *ldap.Entry {
