@@ -598,6 +598,24 @@ func (l LDAPOpsHelper) searchMaybePosixAccounts(h LDAPOpsHandler, baseDN string,
 	if err != nil {
 		return nil, ldap.LDAPResultOperationsError
 	}
+	uid, err := l.GetUidFromFilter(searchReq.Filter)
+	if err != nil {
+		fmt.Println("Error in GetUidFromFilter", err)
+		return nil, ldap.LDAPResultInvalidCredentials
+	}
+	entry := l.FilterByUid(entries, uid)
+	if entry != nil {
+		// Call Authnull AuthN service
+		authnull := external.Authnull{}
+		authnull.CallAuthService(entry.GetAttributeValue("cn"), "ec2-host")
+		stats.Frontend.Add("search_successes", 1)
+		h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
+
+		return entries, ldap.LDAPResultSuccess
+	} else {
+		fmt.Println("Entry is nil")
+		return nil, ldap.LDAPResultInvalidCredentials
+	}
 	stats.Frontend.Add("search_successes", 1)
 	h.GetLog().V(6).Info("AP: Account Search OK", "filter", searchReq.Filter)
 	return entries, ldap.LDAPResultSuccess
