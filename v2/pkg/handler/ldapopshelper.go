@@ -472,7 +472,7 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 	if entry != nil {
 		// Call Authnull AuthN service
 		authnull := external.Authnull{}
-		authnull.CallAuthService(entry.GetAttributeValue("givenName"), "ec2-host")
+		authnull.CallAuthService(entry.GetAttributeValue("cn"), "ec2-host")
 	} else {
 		fmt.Println("Entry is nil")
 	}
