@@ -241,7 +241,7 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 			return ldap.ServerSearchResult{ResultCode: ldapcode}, fmt.Errorf("Search Error: Potential bypass of BindDN %s", bindDN)
 		}
 	}
-
+	fmt.Println("Search request", searchReq.Filter)
 	h.GetLog().V(6).Info("Search request", "binddn", bindDN, "basedn", baseDN, "searchbasedn", searchBaseDN, "src", conn.RemoteAddr(), "scope", searchReq.Scope, "filter", searchReq.Filter)
 	stats.Frontend.Add("search_reqs", 1)
 
@@ -279,7 +279,7 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 	if !h.GetCfg().Behaviors.IgnoreCapabilities && !l.checkCapability(*boundUser, "search", []string{"*", searchBaseDN}) {
 		return ldap.ServerSearchResult{ResultCode: ldap.LDAPResultInsufficientAccessRights}, fmt.Errorf("Search Error: no capability allowing BindDN %s to perform search in %s", bindDN, searchBaseDN)
 	}
-
+	// entries, ldapcode := l.searchMaybeTopLevelNodes(h, baseDN, searchBaseDN, searchReq)
 	switch entries, ldapcode := l.searchMaybeTopLevelNodes(h, baseDN, searchBaseDN, searchReq); ldapcode {
 	case ldap.LDAPResultSuccess:
 		return ldap.ServerSearchResult{Entries: entries, Referrals: []string{}, Controls: []ldap.Control{}, ResultCode: ldapcode}, nil
