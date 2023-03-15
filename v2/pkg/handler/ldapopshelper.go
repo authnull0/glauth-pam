@@ -228,6 +228,9 @@ func (l LDAPOpsHelper) GetUidFromFilter(filter string) (string, error) {
 	} else if strings.Contains(filter, "cn=") {
 		name = strings.Split(filter, "cn=")[1]
 		name = strings.Split(name, ")")[0]
+	} else if strings.Contains(filter, "memberUid=") {
+		name = strings.Split(filter, "memberUid=")[1]
+		name = strings.Split(name, ")")[0]
 	} else {
 		return "", fmt.Errorf("Could not find UID in filter")
 	}
