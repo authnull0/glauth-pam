@@ -191,6 +191,7 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 		hash := sha256.New()
 		fmt.Println("bindSimplePw ", bindSimplePw)
 		hash.Write([]byte(bindSimplePw))
+		fmt.Println("hex.EncodeToString(hash.Sum(nil)) ", hex.EncodeToString(hash.Sum(nil)))
 		if user.PassSHA256 != hex.EncodeToString(hash.Sum(nil)) {
 			h.GetLog().V(2).Info("invalid credentials ssss", "binddn", bindDN, "src", conn.RemoteAddr())
 			l.maybePutInTimeout(h, conn, true)
