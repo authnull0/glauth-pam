@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -222,16 +221,15 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
 
 func (l LDAPOpsHelper) GetUidFromFilter(filter string) (string, error) {
 	// check if there is UID
-	if !strings.Contains(filter, "uid=") || !strings.Contains(filter, "cn=") {
-		return "", errors.New("No UID or CN in filter")
-	}
 	name := ""
-	if !strings.Contains(filter, "uid=") {
+	if strings.Contains(filter, "uid=") {
 		name = strings.Split(filter, "uid=")[1]
 		name = strings.Split(name, ")")[0]
-	} else {
+	} else if strings.Contains(filter, "cn=") {
 		name = strings.Split(filter, "cn=")[1]
 		name = strings.Split(name, ")")[0]
+	} else {
+		return "", fmt.Errorf("Could not find UID in filter")
 	}
 	return name, nil
 }
