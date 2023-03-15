@@ -255,6 +255,7 @@ func ValidateUser(username, endpoint string) bool {
 }
 
 func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.SearchRequest, conn net.Conn) (result ldap.ServerSearchResult, err error) {
+	fmt.Println("Calling Search")
 	if l.isInTimeout(h, conn) {
 		return ldap.ServerSearchResult{ResultCode: ldap.LDAPResultUnwillingToPerform}, fmt.Errorf("Source is in a timeout")
 	}
