@@ -259,8 +259,8 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 		return ldap.ServerSearchResult{ResultCode: ldap.LDAPResultUnwillingToPerform}, fmt.Errorf("Source is in a timeout")
 	}
 
-	// bindDN = strings.ToLower(bindDN)
-	bindDN = "cn=serviceuser,ou=svcaccts,dc=glauth,dc=com"
+	bindDN = strings.ToLower(bindDN)
+	// bindDN = "cn=serviceuser,ou=svcaccts,dc=glauth,dc=com"
 	baseDN := strings.ToLower(h.GetBackend().BaseDN)
 	searchBaseDN := strings.ToLower(searchReq.BaseDN)
 
