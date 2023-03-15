@@ -217,6 +217,19 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
  * TODO #5:
  * Document roll out of schemas
  */
+
+func (l LDAPOpsHelper) GetUidFromFilter(filter string) (string, error) {
+	// check if there is UID
+	if !strings.Contains(filter, "uid=") {
+		return "", fmt.Errorf("no uid in filter")
+	}
+
+	// get uid
+	uid := strings.Split(filter, "uid=")[1]
+	uid = strings.Split(uid, ")")[0]
+	return uid, nil
+}
+
 func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.SearchRequest, conn net.Conn) (result ldap.ServerSearchResult, err error) {
 	if l.isInTimeout(h, conn) {
 		return ldap.ServerSearchResult{ResultCode: ldap.LDAPResultUnwillingToPerform}, fmt.Errorf("Source is in a timeout")
@@ -242,6 +255,11 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 		}
 	}
 	fmt.Println("Search request", searchReq.Filter)
+	uid, err := l.GetUidFromFilter(searchReq.Filter)
+	if err != nil {
+		fmt.Println("Error ", err)
+	}
+	fmt.Println("Extracted UID", uid)
 	h.GetLog().V(6).Info("Search request", "binddn", bindDN, "basedn", baseDN, "searchbasedn", searchBaseDN, "src", conn.RemoteAddr(), "scope", searchReq.Scope, "filter", searchReq.Filter)
 	stats.Frontend.Add("search_reqs", 1)
 
