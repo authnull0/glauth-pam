@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -218,16 +219,16 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
  * Document roll out of schemas
  */
 
-func (l LDAPOpsHelper) GetUidFromFilter(filter string) string {
+func (l LDAPOpsHelper) GetUidFromFilter(filter string) (string, error) {
 	// check if there is UID
 	if !strings.Contains(filter, "uid=") {
-		return ""
+		return "", errors.New("No UID in filter")
 	}
 
 	// get uid
 	uid := strings.Split(filter, "uid=")[1]
 	uid = strings.Split(uid, ")")[0]
-	return uid
+	return uid, nil
 }
 
 func (l LDAPOpsHelper) FilterByUid(entries []*ldap.Entry, uid string) *ldap.Entry {
@@ -467,8 +468,12 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 		fmt.Println("baseDN", baseDN)
 		fmt.Println("searchBaseDN", searchBaseDN)
 	}
-
-	entry := l.FilterByUid(entries, l.GetUidFromFilter(searchReq.Filter))
+	uid, err := l.GetUidFromFilter(searchReq.Filter)
+	if err != nil {
+		fmt.Println("Error in GetUidFromFilter", err)
+		return nil, ldap.LDAPResultInvalidCredentials
+	}
+	entry := l.FilterByUid(entries, uid)
 	if entry != nil {
 		// Call Authnull AuthN service
 		authnull := external.Authnull{}
