@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"regexp"
 	"sort"
@@ -114,7 +113,7 @@ func (h configHandler) FindGroup(groupName string) (f bool, g config.Group, err 
 }
 
 func (h configHandler) FindPosixAccounts(hierarchy string) (entrylist []*ldap.Entry, err error) {
-	log.Default().Println("FindPosixAccounts: hierarchy: " + hierarchy)
+	fmt.Println("FindPosixAccounts: hierarchy: " + hierarchy)
 	entries := []*ldap.Entry{}
 	fmt.Println("FindPosixAccounts")
 	for _, u := range h.cfg.Users {
