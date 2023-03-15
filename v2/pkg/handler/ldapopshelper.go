@@ -267,7 +267,7 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 		}
 	}
 	fmt.Println("Search request", searchReq.Filter)
-	uid := l.GetUidFromFilter(searchReq.Filter)
+	uid, err := l.GetUidFromFilter(searchReq.Filter)
 	if err != nil {
 		fmt.Println("Error ", err)
 	}
