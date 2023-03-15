@@ -218,16 +218,25 @@ func (l LDAPOpsHelper) Bind(h LDAPOpsHandler, bindDN, bindSimplePw string, conn 
  * Document roll out of schemas
  */
 
-func (l LDAPOpsHelper) GetUidFromFilter(filter string) (string, error) {
+func (l LDAPOpsHelper) GetUidFromFilter(filter string) string {
 	// check if there is UID
 	if !strings.Contains(filter, "uid=") {
-		return "", fmt.Errorf("no uid in filter")
+		return ""
 	}
 
 	// get uid
 	uid := strings.Split(filter, "uid=")[1]
 	uid = strings.Split(uid, ")")[0]
-	return uid, nil
+	return uid
+}
+
+func (l LDAPOpsHelper) FilterByUid(entries []*ldap.Entry, uid string) *ldap.Entry {
+	for _, entry := range entries {
+		if entry.GetAttributeValue("givenName") == uid {
+			return entry
+		}
+	}
+	return nil
 }
 
 func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.SearchRequest, conn net.Conn) (result ldap.ServerSearchResult, err error) {
@@ -255,7 +264,7 @@ func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.Se
 		}
 	}
 	fmt.Println("Search request", searchReq.Filter)
-	uid, err := l.GetUidFromFilter(searchReq.Filter)
+	uid := l.GetUidFromFilter(searchReq.Filter)
 	if err != nil {
 		fmt.Println("Error ", err)
 	}
@@ -455,6 +464,13 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 		fmt.Println("-------------searchMaybeTopLevelNodes----------------")
 		fmt.Println("baseDN", baseDN)
 		fmt.Println("searchBaseDN", searchBaseDN)
+	}
+
+	entry := l.FilterByUid(entries, l.GetUidFromFilter(searchReq.Filter))
+	if entry != nil {
+		// Call Authnull AuthN service
+		authnull := external.Authnull{}
+		authnull.CallAuthService(entry.GetAttributeValue("givenName"), "ec2-host")
 	}
 	stats.Frontend.Add("search_successes", 1)
 	h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
