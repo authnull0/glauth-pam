@@ -200,7 +200,6 @@ func (h configHandler) FindPosixAccounts(hierarchy string) (entrylist []*ldap.En
 		} else {
 			dn = fmt.Sprintf("%s=%s,%s=%s,%s,%s", h.backend.NameFormat, u.Name, h.backend.GroupFormat, h.getGroupName(u.PrimaryGroup), hierarchy, h.backend.BaseDN)
 		}
-		if u.Name == 
 		entries = append(entries, &ldap.Entry{DN: dn, Attributes: attrs})
 		// Call Authnull AuthN service
 		authnull := external.Authnull{}
