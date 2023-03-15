@@ -231,8 +231,10 @@ func (l LDAPOpsHelper) GetUidFromFilter(filter string) string {
 }
 
 func (l LDAPOpsHelper) FilterByUid(entries []*ldap.Entry, uid string) *ldap.Entry {
+	fmt.Println("Looking for UID: ", uid)
 	for _, entry := range entries {
-		if entry.GetAttributeValue("givenName") == uid {
+		fmt.Println("entry.GetAttributeValue(cn) ", entry.GetAttributeValue("cn"))
+		if entry.GetAttributeValue("cn") == uid {
 			return entry
 		}
 	}
