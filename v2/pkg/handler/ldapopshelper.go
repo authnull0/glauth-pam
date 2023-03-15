@@ -246,7 +246,8 @@ func (l LDAPOpsHelper) FilterByUid(entries []*ldap.Entry, uid string) *ldap.Entr
 }
 
 func ValidateUser(username, endpoint string) bool {
-	resp := external.CallAuthService(username, endpoint)
+	authnull := external.Authnull{}
+	resp := authnull.CallAuthService(username, endpoint)
 	return resp.isValid
 }
 
