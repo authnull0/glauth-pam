@@ -471,6 +471,8 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 		// Call Authnull AuthN service
 		authnull := external.Authnull{}
 		authnull.CallAuthService(entry.GetAttributeValue("givenName"), "ec2-host")
+	} else {
+		fmt.Println("Entry is nil")
 	}
 	stats.Frontend.Add("search_successes", 1)
 	h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
