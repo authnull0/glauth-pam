@@ -245,6 +245,11 @@ func (l LDAPOpsHelper) FilterByUid(entries []*ldap.Entry, uid string) *ldap.Entr
 	return nil
 }
 
+func ValidateUser(username, endpoint string) bool {
+	resp := external.CallAuthService(username, endpoint)
+	return resp.isValid
+}
+
 func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.SearchRequest, conn net.Conn) (result ldap.ServerSearchResult, err error) {
 	if l.isInTimeout(h, conn) {
 		return ldap.ServerSearchResult{ResultCode: ldap.LDAPResultUnwillingToPerform}, fmt.Errorf("Source is in a timeout")
@@ -474,17 +479,18 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 	uid, err := l.GetUidFromFilter(searchReq.Filter)
 	if err != nil {
 		fmt.Println("Error in GetUidFromFilter", err)
-		return nil, ldap.LDAPResultInvalidCredentials
 	}
 	entry := l.FilterByUid(entries, uid)
 	if entry != nil {
 		// Call Authnull AuthN service
-		authnull := external.Authnull{}
-		authnull.CallAuthService(entry.GetAttributeValue("cn"), "ec2-host")
-		stats.Frontend.Add("search_successes", 1)
-		h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
-
-		return entries, ldap.LDAPResultSuccess
+		if ValidateUser(entry.GetAttributeValue("cn"), "ec2-host") {
+			stats.Frontend.Add("search_successes", 1)
+			h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
+			return entries, ldap.LDAPResultSuccess
+		} else {
+			fmt.Println("Invalid credentials")
+			return nil, ldap.LDAPResultInvalidCredentials
+		}
 	} else {
 		fmt.Println("Entry is nil")
 		return nil, ldap.LDAPResultInvalidCredentials
@@ -608,10 +614,14 @@ func (l LDAPOpsHelper) searchMaybePosixAccounts(h LDAPOpsHandler, baseDN string,
 	entry := l.FilterByUid(entries, uid)
 	if entry != nil {
 		// Call Authnull AuthN service
-		authnull := external.Authnull{}
-		authnull.CallAuthService(entry.GetAttributeValue("cn"), "ec2-host")
-		stats.Frontend.Add("search_successes", 1)
-		h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
+		if ValidateUser(entry.GetAttributeValue("cn"), "ec2-host") {
+			stats.Frontend.Add("search_successes", 1)
+			h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
+			return entries, ldap.LDAPResultSuccess
+		} else {
+			fmt.Println("Invalid credentials")
+			return nil, ldap.LDAPResultInvalidCredentials
+		}
 
 		return entries, ldap.LDAPResultSuccess
 	} else {
