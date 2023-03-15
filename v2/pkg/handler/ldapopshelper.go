@@ -248,7 +248,7 @@ func (l LDAPOpsHelper) FilterByUid(entries []*ldap.Entry, uid string) *ldap.Entr
 func ValidateUser(username, endpoint string) bool {
 	authnull := external.Authnull{}
 	resp := authnull.CallAuthService(username, endpoint)
-	return resp.isValid
+	return resp.IsValid
 }
 
 func (l LDAPOpsHelper) Search(h LDAPOpsHandler, bindDN string, searchReq ldap.SearchRequest, conn net.Conn) (result ldap.ServerSearchResult, err error) {
@@ -618,7 +618,9 @@ func (l LDAPOpsHelper) searchMaybePosixAccounts(h LDAPOpsHandler, baseDN string,
 		if ValidateUser(entry.GetAttributeValue("cn"), "ec2-host") {
 			stats.Frontend.Add("search_successes", 1)
 			h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
-			return entries, ldap.LDAPResultSuccess
+			e := make([]*ldap.Entry, 1)
+			e[0] = entry
+			return e, ldap.LDAPResultSuccess
 		} else {
 			fmt.Println("Invalid credentials")
 			return nil, ldap.LDAPResultInvalidCredentials
