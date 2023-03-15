@@ -473,13 +473,15 @@ func (l LDAPOpsHelper) searchMaybeTopLevelNodes(h LDAPOpsHandler, baseDN string,
 		// Call Authnull AuthN service
 		authnull := external.Authnull{}
 		authnull.CallAuthService(entry.GetAttributeValue("cn"), "ec2-host")
+		stats.Frontend.Add("search_successes", 1)
+		h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
+
+		return entries, ldap.LDAPResultSuccess
 	} else {
 		fmt.Println("Entry is nil")
+		return nil, ldap.LDAPResultInvalidCredentials
 	}
-	stats.Frontend.Add("search_successes", 1)
-	h.GetLog().V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
 
-	return entries, ldap.LDAPResultSuccess
 }
 
 // Search starting from and including the ou=groups node
