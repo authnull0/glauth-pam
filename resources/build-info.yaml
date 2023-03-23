@@ -182,6 +182,7 @@ anchore_properties:
 #   cd_user: 'authnull'
 #   cd_email: 'cd@authnull.com'
 
+
 #*******************************************************************************************************************************#
 #                              CD 
 # Contains deployment properties for deploying applications.  
