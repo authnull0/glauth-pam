@@ -1,0 +1,159 @@
+# Default values for glauthpam.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+glauthpamimage:
+  repository: artifactory.authnull.com/repository/docker-snapshot/glauthpam
+  tag: ""
+  pullPolicy: Always
+
+# lables
+labels:
+  environment: snapshot
+  app: glauthpam
+  team: glauthpam
+
+#deployment name
+imagePullSecrets: glauthpamimagecred
+nameOverride: ""
+fullnameOverride: ""
+
+# deployment:
+#   name: glauthpam-deployment
+label:
+  name: glauthpam
+  
+#rolling update 
+type: RollingUpdate
+maxSurge: 0
+maxUnavailable: 1
+minReadySeconds: 5
+revisionHistoryLimit: 10 
+
+# serviceAccount
+serviceAccount: {}
+
+
+#securityContext
+securitycontextglauthpam: {}
+
+#service
+service:
+  enabled: true
+  type: ClusterIP
+
+service1:  
+  name: glauthpam-service1
+  port: 389
+  targetPort: 389
+  protocol: TCP
+  
+
+service2:
+  name: glauthpam-service2
+  port: 636
+  targetPort: 636
+  protocol: TCP
+  
+
+service3:
+  name: glauthpam-service3
+  port: 5555
+  targetPort: 5555
+  protocol: TCP
+    
+serviceExternal:
+  enabled: false
+
+virtualService: {}
+
+serviceEntry: {}
+
+#env
+env: {}
+
+#Container Port Open 
+containerportglauthpam:  
+  - containerport1: 389
+  - containerport2: 636
+  - containerport3: 5555
+
+#ingress Layer 7 certificate Loadbalancer
+ingress:
+  enabled: false
+
+#Configmap
+configmapglauthpam:
+  name: glauthpam-snapshot-configmap
+  enabled: true
+  app: "configmapfiles/snapshot/glauthpam/sample-simple.cfg"
+
+
+#secretglauthpam
+secretglauthpam:
+  name: glauthpam-kafka-ssl-snapshot
+  enabled: false
+  capem: secretfiles/snapshot/glauthpam/ca.pem
+  userp12: secretfiles/snapshot/glauthpam/user.p12
+
+#Volumes 
+volumesglauthpam:
+- name: glauthpam-config-volume
+  configMap:
+    name: glauthpam-snapshot-configmap 
+    defaultMode: 0744 
+        
+# - name: glauthpam-kafka-ssl-volume
+#   secret:
+#     secretName: glauthpam-kafka-ssl-snapshot
+
+#Volume-Mounts 
+volumemountsglauthpam:
+- name: glauthpam-config-volume
+  mountPath: /app/v2/sample-simple.cfg
+  subPath: sample-simple.cfg
+
+# - name: glauthpam-kafka-ssl-volume
+#   mountPath: /home/glauthpam/kafka-ssl/ca.pem
+#   subPath: ca.pem
+
+# - name: glauthpam-kafka-ssl-volume
+#   mountPath: /home/glauthpam/kafka-ssl/user.p12
+#   subPath: user.p12
+
+#Resources 
+resourcesglauthpam:
+  limits:
+    memory: "500Mi"
+    cpu: "500m"
+  requests:
+    memory: "300Mi"
+    cpu: "300m"
+
+#PersistentVolumeClaim 
+persistentvolumeclaim:
+  enabled: false
+  name: glauthpam-pvc
+  spec:
+    storageClassName: standard
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 50Gi
+
+#HPA
+autoscaling:
+  enabled: false
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 75
+  minReplicas: 2
+  maxReplicas: 5
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

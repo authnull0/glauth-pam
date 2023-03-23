@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glauthpam-deployment
+  labels:
+{{ toYaml .Values.labels | indent 4 }}  
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+{{ toYaml .Values.labels | indent 8 }}
+  strategy:
+    type: {{ .Values.type }}
+    rollingUpdate:
+      maxSurge: {{ .Values.maxSurge }}
+      maxUnavailable: {{ .Values.maxUnavailable }}
+  minReadySeconds: {{ .Values.minReadySeconds }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+{{ toYaml .Values.labels | indent 8 }}
+      annotations: 
+        checksum.helm.kubernetes.io/configmap: {{ include (print $.Chart.Name "/templates/configmap-glauthpam.yaml") . | sha256sum }}
+        checksum.helm.kubernetes.io/configmap: {{ include (print $.Chart.Name "/templates/secret-glauthpam.yaml") . | sha256sum }}
+
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      volumes:
+        {{- toYaml .Values.volumesglauthpam | nindent 8 }}
+
+      containers:
+      - name: {{ .Values.labels.app }}
+        image: "{{ .Values.glauthpamimage.repository }}:{{ .Values.glauthpamimage.tag | default .Chart.AppVersion }}" # Image URL
+        imagePullPolicy: {{ .Values.glauthpamimage.pullPolicy }}
+        securityContext:
+          {{ toYaml .Values.securitycontextglauthpam | nindent 10 }}
+        volumeMounts:
+          {{ toYaml .Values.volumemountsglauthpam | nindent 10 }}
+        env:
+          {{ toYaml .Values.env | nindent 10 }}    
+        resources:
+          {{ toYaml .Values.resourcesglauthpam | nindent 10 }}
+        ports:
+          {{ toYaml .Values.containerportglauthpam | nindent 10 }}                                
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

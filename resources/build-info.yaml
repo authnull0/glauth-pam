@@ -1,0 +1,341 @@
+
+  
+#***********************************************************************************************************************************#
+# Build_steps stage used to build the source code of the application
+#***********************************************************************************************************************************#
+
+# build_steps:
+#   - name: Unit Test
+#     source: "."
+#     image:
+#         name: artifactory.authnull.com/authnull/golang:1.16-alpine
+#         docker_run_params: '-u 0:0 -v /root/.m2:/root/.m2'
+#     commands:
+#       - "go mod tidy"
+#       - "CGO_ENABLED=0 GOOS=linux go test -v ./... -coverprofile=coverage.out -json > report.json"
+#       - "pwd"
+#       - "CGO_ENABLED=0 GOOS=linux go test -cover ./..."
+#       - "rm -rf log"
+#       - "ls -l"
+
+
+#***********************************************************************************************************************************#
+#Pass the sonarqube name and sonarrunner name which is configured in Managed-Jenkins.
+#qualitygate_timeout is the maximum timeout of qualitygate to 10 Min#
+#***********************************************************************************************************************************#
+sonar_properties:
+  status:
+    enabled: "false"
+  quality_gate:
+    enabled: "false"
+    timeout: "3"
+  sonarqube_server_name: "sonar-scan"
+  sonar_runnner_tools_name: "SonarQubeScanner"
+  qualitygate_result_ignore: "no"
+
+  image:
+      name: artifactory.authnull.com/authnull/sonar-scanner-cli:latest
+      docker_run_params:  -v /usr/local/bin:/usr/local/bin
+#**********************************************************************************************************************************#
+#Below sonar_conf containts properties section to run Sonar, 
+#Mention project key and name which was created in sonarqube server
+#Mention the Host url where the sonar server is running
+#for sonar credentials use username/API Token combo which was created in jenkins manage credentials.
+#**********************************************************************************************************************************#
+  sonar_conf:
+  -   sonar.projectKey: glauthpam
+      sonar.projectName: glauthpam
+      sonar.projectVersion: 2.7
+      sonar.sourcepath: src
+      sonar.exclusions: "**/*_test.go"
+      sonar.tests: .
+      sonar.test.inclusions: "**/*_test.go,"
+      sonar.test.exclusions: "**/test/**"
+      sonar.go.tests.reportPaths: "report.json"
+      sonar.go.coverage.reportPaths: "coverage.out"
+      sonar.sourceEncoding : UTF-8
+      sonar.web.host: https://sonarqube.authnull.com/
+      sonar.login: sonarqube
+      
+#***********************************************************************************************************************************#
+# Docker_build stage builds the docker image from the Dockerfile
+#Docker build mention the name for docker build. specify the dockerfile dirctory where Dockerfile was stored
+#Mention Dockerfile name and tag for build
+#***********************************************************************************************************************************#
+
+docker_build:
+  - name: glauthpam
+    Dockerfile_dir: ./v2/
+    Dockerfile_name: Dockerfile-plugins
+    pre_steps:
+      #- cp -r /home/git-key/GIT-KEY $(pwd) 
+      - ls -l
+      - echo cp
+    tag: 1.0
+
+#***********************************************************************************************************************************#
+# Image properties is to define the artifactory for pull the respective image
+# for artifactory credentials use username/API Token combo which was created in jenkins manage credentials.
+#***********************************************************************************************************************************#
+image_properties:
+   artifactory:
+     url: https://artifactory.authnull.com/
+     cred: 'nexus-credentials'
+
+
+#***********************************************************************************************************************************#
+# Slack webhook url to send the report 
+#***********************************************************************************************************************************#
+
+# slack_properties:
+#    slack_url: "https://hooks.slack.com/services/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"
+
+
+#***********************************************************************************************************************************#
+#if we need to scan the image with trivy change the status: enable: "true" if need to disable the scan change this to "false" 
+#Mention the level of scan is mandatory Acceptable Values are CRITICAL, HIGH, MEDIUM, LOW
+#pass the artifactory trivyimage for the process
+#***********************************************************************************************************************************#
+trivy_properties:
+   status:
+   #Acceptable Values are CRITICAL, HIGH, MEDIUM, LOW
+     enabled: "true"
+     level: low
+     value: "10"
+   image:
+       name: artifactory.authnull.com/authnull/trivy:latest
+       docker_run_params:  --entrypoint='' -v /var/run/docker.sock:/var/run/docker.sock -v /root/.cache/:/root/.cache/
+
+
+#***********************************************************************************************************************************#
+# Lints and package the helm chart
+#helm build mention the name for helm build. specify the helm image and docker parameter to run the helm docker
+#Mention helm dir and tag for build
+#***********************************************************************************************************************************#
+helm_build:
+  - name: Helm-Build
+    image:
+      name: "artifactory.authnull.com/authnull/custom-helm-image:latest"
+      docker_run_params: ""
+    helm_dir: glauthpam-charts
+    tag: 1.0
+    commands:
+      #- helm lint
+      - helm package .
+
+
+#***********************************************************************************************************************************#
+# publish docker image, helmchart and artifacts to specified artifactory locations
+#for artifactory credentials use username/API Token combo which was created in jenkins manage credentials.
+#Pass the repostiry url for docker helm and artifacts where images need to push
+#***********************************************************************************************************************************#
+publish_config:
+    publish_nexus_credentials: "nexus-credentials"
+    docker:
+      snapshot: artifactory.authnull.com/repository/docker-snapshot
+      dev:  artifactory.authnull.com/repository/docker-dev
+      verify:  artifactory.authnull.com/repository/docker-verify
+      prod:  artifactory.authnull.com/repository/docker-prod
+    helm:
+      snapshot: https://artifactory.authnull.com/repository/helm-snapshot/
+      dev: https://artifactory.authnull.com/repository/helm-dev/
+      verify: https://artifactory.authnull.com/repository/helm-verify/
+      prod: https://artifactory.authnull.com/repository/helm-prod/
+
+
+#***********************************************************************************************************************************#
+# if we need to scan the image with anchore change the status: enable: "true" if need to disable the scan change this to "false" 
+# Pass the anchore cli artifactory image
+# pass the anchore engine user name, password and engine url
+#***********************************************************************************************************************************#
+anchore_properties:
+  status:
+    enabled: "false"
+  image:
+      name: artifactory.authnull.com/authnull/anchore-engine-cli:latest
+      docker_run_params:  --entrypoint=''
+  anchore_conf:
+  -   anchore.user: "admin"
+      anchore.pass: "foobar"
+      anchore.url: "http://172.31.28.145:8228/v1/"
+
+# gcr_config:
+#   dev:
+#     project: 'mimetic-kit-294408'
+#     gcr_credentials: 'gcr-prod'
+#   verify:
+#     project: 'mimetic-kit-294408'
+#     gcr_credentials: 'gcr-prod'
+#   prod:
+#     project: 'mimetic-kit-294408'
+#     gcr_credentials: 'gcr-prod'
+
+#***********************************************************************************************************************************#
+# publish helmchart to specified CD git repository
+# for CD git credentials use username/API Token combo which was created in jenkins manage credentials.
+# Pass the CD git repostiry url for publishing helm chart to CD repo
+#***********************************************************************************************************************************#
+
+# deploy_config:
+#   cd_credentials: "github-token"
+#   cd_repo: github.com/authnull/Argo-CD-Manifests.git
+#   cd_user: 'authnull'
+#   cd_email: 'cd@authnull.com'
+
+#*******************************************************************************************************************************#
+#                              CD 
+# Contains deployment properties for deploying applications.  
+#*******************************************************************************************************************************#
+deploy:
+#*********************************************************************************************#
+#               Deployment Configuration for Dev Environment.
+#*********************************************************************************************#
+
+  dev:
+    GKE:
+      k8s_clusters1:
+          type: "GKE"
+          enabled: false
+          spec: 
+            gcp_project_id: "mimetic-kit-294408"
+            name: "authnull-saas-dev-gke1"
+            location: "us-central1-c"
+            service_account_name: "saas-dev-gke@mimetic-kit-294408.iam.gserviceaccount.com"
+            service_account_jenkins_cred_id: "saas-dev-gke"     
+  
+      
+    EKS:
+      k8s_clusters1:
+          type: "EKS"
+          enabled: true
+          spec:
+            name: "authnull-saas-dev-eks1"
+            location: "us-west-2"
+            access_key_id_jenkins_cred_id: "access-key-id-eks-test"
+            secret_access_key_jenkins_cred_id: "secret-access-key-eks-test"
+  
+
+    AKS:
+      k8s_clusters1:
+          type: "AKS"
+          enabled: false  
+          spec:
+            app_id: "0fd73603-ea12-4dd0-9f9e-811a60f654f1"
+            password_jenkins_cred_id: "aks-test"
+            tenant: "0bbc9f6e-fecf-44ab-99a8-94766ed0d482"
+            name: "authnull-saas-dev-aks1"
+            resource_group: "AKS_Full"
+
+          
+    helm_charts:
+      enabled: true
+      spec:
+        dir: charts
+        values_file: charts/values-dev.yaml 
+        release_name: glauthpam-dev
+        namespace: glauthpam-dev
+        command: "install"
+        commandOpts: "--wait --timeout 5m0s --set name=test"
+
+#*********************************************************************************************#
+#               Deployment Configuration for Verify Environment.
+#*********************************************************************************************#  
+  verify:
+    GKE:
+      k8s_clusters1:
+          type: "GKE"
+          enabled: false
+          spec: 
+            gcp_project_id: "mimetic-kit-294408"
+            name: "authnull-saas-verify-gke1"
+            location: "us-central1-c"
+            service_account_name: "saas-dev-gke@mimetic-kit-294408.iam.gserviceaccount.com"
+            service_account_jenkins_cred_id: "saas-verify-gke"     
+  
+      
+    EKS:
+      k8s_clusters1:
+          type: "EKS"
+          enabled: false
+          spec:
+            name: "authnull-saas-verify-eks1"
+            location: "us-west-2"
+            access_key_id_jenkins_cred_id: "access-key-id-eks-test"
+            secret_access_key_jenkins_cred_id: "secret-access-key-eks-test"
+  
+
+    AKS:
+      k8s_clusters1:
+          type: "AKS"
+          enabled: false  
+          spec:
+            app_id: "0fd73603-ea12-4dd0-9f9e-811a60f654f1"
+            password_jenkins_cred_id: "aks-test"
+            tenant: "0bbc9f6e-fecf-44ab-99a8-94766ed0d482"
+            name: "authnull-saas-verify-aks1"
+            resource_group: "AKS_Full"
+
+          
+    helm_charts:
+      enabled: true
+      spec:
+        dir: charts
+        values_file: charts/values-verify.yaml 
+        release_name: glauthpam-verify
+        namespace: glauthpam-verify
+        command: "install"
+        commandOpts: "--wait --timeout 5m0s --set name=test"
+
+#*********************************************************************************************#
+#               Deployment Configuration for Production Environment.
+#*********************************************************************************************#  
+  prod:
+    GKE:
+      k8s_clusters1:
+          type: "GKE"
+          enabled: false
+          spec: 
+            gcp_project_id: "mimetic-kit-294408"
+            name: "authnull-saas-prod-gke1"
+            location: "us-central1-c"
+            service_account_name: "saas-dev-gke@mimetic-kit-294408.iam.gserviceaccount.com"
+            service_account_jenkins_cred_id: "saas-prod-gke"     
+  
+      
+    EKS:
+      k8s_clusters1:
+          type: "EKS"
+          enabled: false
+          spec:
+            name: "authnull-saas-prod-eks1"
+            location: "us-west-2"
+            access_key_id_jenkins_cred_id: "access-key-id-eks-test"
+            secret_access_key_jenkins_cred_id: "secret-access-key-eks-test"
+  
+
+    AKS:
+      k8s_clusters1:
+          type: "AKS"
+          enabled: false  
+          spec:
+            app_id: "0fd73603-ea12-4dd0-9f9e-811a60f654f1"
+            password_jenkins_cred_id: "aks-test"
+            tenant: "0bbc9f6e-fecf-44ab-99a8-94766ed0d482"
+            name: "authnull-saas-prod-aks1"
+            resource_group: "AKS_Full"
+
+          
+    helm_charts:
+      enabled: true
+      spec:
+        dir: charts
+        values_file: charts/values-prod.yaml 
+        release_name: glauthpam-prod
+        namespace: glauthpam-prod
+        command: "install"
+        commandOpts: "--wait --timeout 5m0s --set name=test"
+ecr:
+  enabled: true
+  account_id: "199488642388"
+  region: "us-west-1"
+  image: glauthpam
