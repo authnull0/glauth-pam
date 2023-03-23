@@ -219,7 +219,7 @@ deploy:
     AKS:
       k8s_clusters1:
           type: "AKS"
-          enabled: false  
+          enabled: true  
           spec:
             app_id: "0fd73603-ea12-4dd0-9f9e-811a60f654f1"
             password_jenkins_cred_id: "aks-test"
