@@ -25,9 +25,9 @@
 #***********************************************************************************************************************************#
 sonar_properties:
   status:
-    enabled: "false"
+    enabled: "true"
   quality_gate:
-    enabled: "false"
+    enabled: "true"
     timeout: "3"
   sonarqube_server_name: "sonar-scan"
   sonar_runnner_tools_name: "SonarQubeScanner"
@@ -150,7 +150,7 @@ publish_config:
 #***********************************************************************************************************************************#
 anchore_properties:
   status:
-    enabled: "false"
+    enabled: "true"
   image:
       name: artifactory.authnull.com/authnull/anchore-engine-cli:latest
       docker_run_params:  --entrypoint=''
@@ -193,6 +193,7 @@ deploy:
 #*********************************************************************************************#
 
   dev:
+    dev:
     GKE:
       k8s_clusters1:
           type: "GKE"
@@ -204,35 +205,57 @@ deploy:
             service_account_name: "saas-dev-gke@mimetic-kit-294408.iam.gserviceaccount.com"
             service_account_jenkins_cred_id: "saas-dev-gke"     
   
-      
+      k8s_clusters2:
+          type: "GKE"
+          enabled: false
+    
+
     EKS:
       k8s_clusters1:
           type: "EKS"
           enabled: true
           spec:
             name: "authnull-saas-dev-eks1"
-            location: "us-west-2"
+            location: "us-east-2"
             access_key_id_jenkins_cred_id: "access-key-id-eks-test"
             secret_access_key_jenkins_cred_id: "secret-access-key-eks-test"
+
+      k8s_clusters2:
+          type: "EKS"
+          enabled: false
+               
   
 
     AKS:
       k8s_clusters1:
           type: "AKS"
-          enabled: true  
+          enabled: false  
           spec:
             app_id: "0fd73603-ea12-4dd0-9f9e-811a60f654f1"
             password_jenkins_cred_id: "aks-test"
             tenant: "0bbc9f6e-fecf-44ab-99a8-94766ed0d482"
             name: "authnull-saas-dev-aks1"
             resource_group: "AKS_Full"
+      
+      k8s_clusters2:
+          type: "AKS"
+          enabled: false  
+
+    SMD:   
+      k8s_clusters1:
+          type: "SMD"
+          enabled: false 
+      
+      k8s_clusters2:
+          type: "SMD"
+          enabled: false
 
           
     helm_charts:
       enabled: true
       spec:
-        dir: charts
-        values_file: charts/values-dev.yaml 
+        dir: glauthpam-charts
+        values_file: glauthpam-charts/values-dev.yaml 
         release_name: glauthpam-dev
         namespace: glauthpam-dev
         command: "install"
@@ -248,21 +271,30 @@ deploy:
           enabled: false
           spec: 
             gcp_project_id: "mimetic-kit-294408"
-            name: "authnull-saas-verify-gke1"
+            name: "authnull-saas-dev-gke1"
             location: "us-central1-c"
             service_account_name: "saas-dev-gke@mimetic-kit-294408.iam.gserviceaccount.com"
-            service_account_jenkins_cred_id: "saas-verify-gke"     
+            service_account_jenkins_cred_id: "saas-dev-gke"     
   
-      
+      k8s_clusters2:
+          type: "GKE"
+          enabled: false
+    
+
     EKS:
       k8s_clusters1:
           type: "EKS"
-          enabled: false
+          enabled: true
           spec:
-            name: "authnull-saas-verify-eks1"
+            name: "authnull-saas-dev-eks1"
             location: "us-west-2"
             access_key_id_jenkins_cred_id: "access-key-id-eks-test"
             secret_access_key_jenkins_cred_id: "secret-access-key-eks-test"
+
+      k8s_clusters2:
+          type: "EKS"
+          enabled: false
+               
   
 
     AKS:
@@ -273,15 +305,28 @@ deploy:
             app_id: "0fd73603-ea12-4dd0-9f9e-811a60f654f1"
             password_jenkins_cred_id: "aks-test"
             tenant: "0bbc9f6e-fecf-44ab-99a8-94766ed0d482"
-            name: "authnull-saas-verify-aks1"
+            name: "authnull-saas-dev-aks1"
             resource_group: "AKS_Full"
+      
+      k8s_clusters2:
+          type: "AKS"
+          enabled: false  
+
+    SMD:   
+      k8s_clusters1:
+          type: "SMD"
+          enabled: false 
+      
+      k8s_clusters2:
+          type: "SMD"
+          enabled: false
 
           
     helm_charts:
       enabled: true
       spec:
-        dir: charts
-        values_file: charts/values-verify.yaml 
+        dir: glauthpam-charts
+        values_file: glauthpam-charts/values-verify.yaml 
         release_name: glauthpam-verify
         namespace: glauthpam-verify
         command: "install"
@@ -297,21 +342,30 @@ deploy:
           enabled: false
           spec: 
             gcp_project_id: "mimetic-kit-294408"
-            name: "authnull-saas-prod-gke1"
+            name: "authnull-saas-dev-gke1"
             location: "us-central1-c"
             service_account_name: "saas-dev-gke@mimetic-kit-294408.iam.gserviceaccount.com"
-            service_account_jenkins_cred_id: "saas-prod-gke"     
+            service_account_jenkins_cred_id: "saas-dev-gke"     
   
-      
+      k8s_clusters2:
+          type: "GKE"
+          enabled: false
+    
+
     EKS:
       k8s_clusters1:
           type: "EKS"
-          enabled: false
+          enabled: true
           spec:
-            name: "authnull-saas-prod-eks1"
+            name: "authnull-saas-dev-eks1"
             location: "us-west-2"
             access_key_id_jenkins_cred_id: "access-key-id-eks-test"
             secret_access_key_jenkins_cred_id: "secret-access-key-eks-test"
+
+      k8s_clusters2:
+          type: "EKS"
+          enabled: false
+               
   
 
     AKS:
@@ -322,21 +376,35 @@ deploy:
             app_id: "0fd73603-ea12-4dd0-9f9e-811a60f654f1"
             password_jenkins_cred_id: "aks-test"
             tenant: "0bbc9f6e-fecf-44ab-99a8-94766ed0d482"
-            name: "authnull-saas-prod-aks1"
+            name: "authnull-saas-dev-aks1"
             resource_group: "AKS_Full"
+      
+      k8s_clusters2:
+          type: "AKS"
+          enabled: false  
+
+    SMD:   
+      k8s_clusters1:
+          type: "SMD"
+          enabled: false 
+      
+      k8s_clusters2:
+          type: "SMD"
+          enabled: false
 
           
     helm_charts:
       enabled: true
       spec:
-        dir: charts
-        values_file: charts/values-prod.yaml 
+        dir: glauthpam-charts
+        values_file: glauthpam-charts/values-prod.yaml 
         release_name: glauthpam-prod
         namespace: glauthpam-prod
         command: "install"
         commandOpts: "--wait --timeout 5m0s --set name=test"
-ecr:
-  enabled: true
-  account_id: "199488642388"
-  region: "us-west-1"
-  image: glauthpam
+# ecr:
+#   enabled: true
+#   account_id: "199488642388"
+#   region: "us-west-1"
+#   image: glauthpam
+
