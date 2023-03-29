@@ -46,7 +46,7 @@ sonar_properties:
   -   sonar.projectKey: glauthpam
       sonar.projectName: glauthpam
       sonar.projectVersion: 2.7
-      sonar.sourcepath: src
+      sonar.sourcepath: v2
       sonar.exclusions: "**/*_test.go"
       sonar.tests: .
       sonar.test.inclusions: "**/*_test.go,"
