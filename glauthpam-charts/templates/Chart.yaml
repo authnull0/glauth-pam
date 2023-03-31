@@ -1,0 +1,6 @@
+apiVersion: v2
+name: glauthpam-charts
+description: A Helm chart for glauthpam
+type: application
+version: 0.10
+appVersion: 1.0
