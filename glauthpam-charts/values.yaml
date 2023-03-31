@@ -16,7 +16,8 @@ labels:
   team: glauthpam
 
 #deployment name
-imagePullSecrets: glauthpamimagecred
+imagePullSecrets:
+  - name:  glauthpamimagecred
 nameOverride: ""
 fullnameOverride: ""
 

@@ -36,19 +36,17 @@ spec:
         {{- toYaml .Values.volumesglauthpam | nindent 8 }}
 
       containers:
-      - name: {{ .Values.labels.app }}
-        image: "{{ .Values.glauthpamimage.repository }}:{{ .Values.glauthpamimage.tag | default .Chart.AppVersion }}" # Image URL
-        imagePullPolicy: {{ .Values.glauthpamimage.pullPolicy }}
-        securityContext:
-          {{ toYaml .Values.securitycontextglauthpam | nindent 10 }}
-        volumeMounts:
-          {{ toYaml .Values.volumemountsglauthpam | nindent 10 }}
-        env:
-          {{ toYaml .Values.env | nindent 10 }}    
-        resources:
-          {{ toYaml .Values.resourcesglauthpam | nindent 10 }}
-        ports:
-          {{ toYaml .Values.containerportglauthpam | nindent 10 }}                                
+        - name: {{ .Values.labels.app }}
+          securityContext:
+            {{- toYaml .Values.securitycontextglauthpam | nindent 12 }}
+          image: "{{ .Values.glauthpamimage.repository }}:{{ .Values.glauthpamimage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.glauthpamimage.pullPolicy }}
+          volumeMounts:
+            {{ toYaml .Values.volumemountsglauthpam | nindent 12 }}
+          ports:
+            {{ toYaml .Values.containerportglauthpam | nindent 12 }} 
+          resources:
+            {{- toYaml .Values.resourcesglauthpam | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

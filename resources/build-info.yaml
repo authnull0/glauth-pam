@@ -256,8 +256,8 @@ deploy:
       spec:
         dir: glauthpam-charts
         values_file: glauthpam-charts/values-dev.yaml 
-        release_name: glauthpam-dev
-        namespace: glauthpam-dev
+        release_name: authnull-glauthpam-dev
+        namespace: authnull-glauthpam-dev
         command: "install"
         commandOpts: "--wait --timeout 5m0s --set name=test"
 
@@ -327,8 +327,8 @@ deploy:
       spec:
         dir: glauthpam-charts
         values_file: glauthpam-charts/values-verify.yaml 
-        release_name: glauthpam-verify
-        namespace: glauthpam-verify
+        release_name: authnull-glauthpam-verify
+        namespace: authnull-glauthpam-verify
         command: "install"
         commandOpts: "--wait --timeout 5m0s --set name=test"
 
@@ -398,8 +398,8 @@ deploy:
       spec:
         dir: glauthpam-charts
         values_file: glauthpam-charts/values-prod.yaml 
-        release_name: glauthpam-prod
-        namespace: glauthpam-prod
+        release_name: authnull-glauthpam-prod
+        namespace: authnull-glauthpam-prod
         command: "install"
         commandOpts: "--wait --timeout 5m0s --set name=test"
 # ecr:

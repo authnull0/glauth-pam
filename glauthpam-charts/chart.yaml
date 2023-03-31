@@ -1,6 +1,0 @@
-apiVersion: v2
-name: authnull-api-charts
-description: A Helm chart for authnull-api
-type: application
-version: 0.10
-appVersion: 1.0.35
