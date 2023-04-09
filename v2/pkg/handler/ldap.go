@@ -251,7 +251,7 @@ func (h ldapHandler) Search(boundDN string, searchReq ldap.SearchRequest, conn n
 				}
 			}
 			if !foundattname {
-				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: attbits[1], Values: []string{attbits[2]}})
+				entry.Attributes = append(entry.Attributes, &ldap.EntryAttribute{Name: attbits[1], Va	lues: []string{attbits[2]}})
 			}
 		}
 	}
@@ -376,10 +376,28 @@ func (h ldapHandler) getSession(conn net.Conn) (ldapSession, error) {
 		}
 		dest := fmt.Sprintf("%s:%d", server.Hostname, server.Port)
 		if server.Scheme == "ldaps" {
-			tlsCfg := &tls.Config{}
-			if h.backend.Insecure {
-				tlsCfg.InsecureSkipVerify = true
+			pemData, err := ioutil.ReadFile(h.backend.Pem)
+			if err != nil {
+				h.log.V(6).Info("Failed to read PEM file", "Error :", err)
+				log.Fatalf("Failed to read PEM file: %v", err)
 			}
+			fmt.Println("After reading the PEM File")
+			// Parse PEM data
+			certPool := x509.NewCertPool()
+			ok := certPool.AppendCertsFromPEM(pemData)
+			if !ok {
+				h.log.V(6).Info("Failed to parse PEM data", "Error :", err)
+				log.Fatalf("Failed to parse PEM data")
+			}
+			fmt.Println("After Parsing the PEM File")
+
+			tlsCfg := &tls.Config{}
+			//if h.backend.Insecure {
+			tlsCfg.RootCAs = certPool
+			tlsCfg.InsecureSkipVerify = true
+			//}
+			l, err = ldap.DialTLS("tcp", dest, tlsCfg)
+			fmt.Println("After Connecting the LDAP AD")
 			l, err = ldap.DialTLS("tcp", dest, tlsCfg)
 		} else if server.Scheme == "ldap" {
 			l, err = ldap.Dial("tcp", dest)
@@ -408,10 +426,28 @@ func (h ldapHandler) ping() error {
 		dest := fmt.Sprintf("%s:%d", s.Hostname, s.Port)
 		start := time.Now()
 		if h.servers[0].Scheme == "ldaps" {
-			tlsCfg := &tls.Config{}
-			if h.backend.Insecure {
-				tlsCfg.InsecureSkipVerify = true
+			pemData, err := ioutil.ReadFile(h.backend.Pem)
+			if err != nil {
+				h.log.V(6).Info("Failed to read PEM file", "Error :", err)
+				log.Fatalf("Failed to read PEM file: %v", err)
 			}
+			fmt.Println("After reading the PEM File")
+			// Parse PEM data
+			certPool := x509.NewCertPool()
+			ok := certPool.AppendCertsFromPEM(pemData)
+			if !ok {
+				h.log.V(6).Info("Failed to parse PEM data", "Error :", err)
+				log.Fatalf("Failed to parse PEM data")
+			}
+			fmt.Println("After Parsing the PEM File")
+
+			tlsCfg := &tls.Config{}
+			//if h.backend.Insecure {
+			tlsCfg.RootCAs = certPool
+			tlsCfg.InsecureSkipVerify = true
+			//}
+			l, err = ldap.DialTLS("tcp", dest, tlsCfg)
+			fmt.Println("After Connecting the LDAP AD")
 			l, err = ldap.DialTLS("tcp", dest, tlsCfg)
 		} else if h.servers[0].Scheme == "ldap" {
 			l, err = ldap.Dial("tcp", dest)

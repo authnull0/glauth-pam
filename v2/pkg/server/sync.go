@@ -35,7 +35,7 @@ func (s *Sync) pullUsers() {
 		DomainId: 1,
 		PageId: 1,
 		PageSize: 10,
-		Filter: "ssh",
+		Filter: "",
 		InstanceIds: []int{1,2},
     })
 	responseBody := bytes.NewBuffer(postBody)

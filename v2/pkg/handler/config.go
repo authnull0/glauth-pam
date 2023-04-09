@@ -79,7 +79,7 @@ func (h configHandler) Delete(boundDN string, deleteDN string, conn net.Conn) (r
 func (h configHandler) FindUser(userName string, searchByUPN bool) (f bool, u config.User, err error) {
 	user := config.User{}
 	found := false
-
+	
 	for _, u := range h.cfg.Users {
 		if searchByUPN {
 			if strings.EqualFold(u.Mail, userName) {
