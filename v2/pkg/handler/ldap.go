@@ -271,6 +271,7 @@ func (h ldapHandler) Search(boundDN string, searchReq ldap.SearchRequest, conn n
 	}
 	stats.Frontend.Add("search_successes", 1)
 	h.log.V(6).Info("AP: Search OK", "filter", search.Filter, "numentries", len(ssr.Entries))
+	//Make Call to AuthN Service to request Verifiable Credential using Verifier service
 	return ssr, nil
 }
 
