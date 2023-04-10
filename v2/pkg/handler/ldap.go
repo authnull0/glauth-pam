@@ -3,8 +3,11 @@ package handler
 import (
 	"crypto/sha256"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net"
 	"net/url"
 	"os"
@@ -88,7 +91,6 @@ func NewLdapHandler(opts ...Option) Handler {
 	return handler
 }
 
-//
 func (h ldapHandler) Bind(bindDN, bindSimplePw string, conn net.Conn) (resultCode ldap.LDAPResultCode, err error) {
 	h.log.V(6).Info("Bind request", "binddn", bindDN, "src", conn.RemoteAddr())
 
@@ -154,7 +156,6 @@ func (h ldapHandler) Bind(bindDN, bindSimplePw string, conn net.Conn) (resultCod
 	return ldap.LDAPResultSuccess, nil
 }
 
-//
 func (h ldapHandler) Search(boundDN string, searchReq ldap.SearchRequest, conn net.Conn) (result ldap.ServerSearchResult, err error) {
 	wantAttributes := true
 	wantTypesOnly := false
@@ -362,7 +363,6 @@ func (h *ldapHandler) monitorServers() {
 	}()
 }
 
-//
 func (h ldapHandler) getSession(conn net.Conn) (ldapSession, error) {
 	id := connID(conn)
 	h.lock.Lock()
@@ -376,10 +376,24 @@ func (h ldapHandler) getSession(conn net.Conn) (ldapSession, error) {
 		}
 		dest := fmt.Sprintf("%s:%d", server.Hostname, server.Port)
 		if server.Scheme == "ldaps" {
-			tlsCfg := &tls.Config{}
-			if h.backend.Insecure {
-				tlsCfg.InsecureSkipVerify = true
+			pemData, err := ioutil.ReadFile(h.backend.Pem)
+			if err != nil {
+				h.log.V(6).Info("Failed to read PEM file", "Error :", err)
+				log.Fatalf("Failed to read PEM file: %v", err)
 			}
+			fmt.Println("After reading the PEM File")
+			// Parse PEM data
+			certPool := x509.NewCertPool()
+			ok := certPool.AppendCertsFromPEM(pemData)
+			if !ok {
+				h.log.V(6).Info("Failed to parse PEM data", "Error :", err)
+				log.Fatalf("Failed to parse PEM data")
+			}
+			fmt.Println("After Parsing the PEM File")
+
+			tlsCfg := &tls.Config{}
+			tlsCfg.RootCAs = certPool
+			tlsCfg.InsecureSkipVerify = true
 			l, err = ldap.DialTLS("tcp", dest, tlsCfg)
 		} else if server.Scheme == "ldap" {
 			l, err = ldap.Dial("tcp", dest)
@@ -399,7 +413,6 @@ func (h ldapHandler) getSession(conn net.Conn) (ldapSession, error) {
 	return s, nil
 }
 
-//
 func (h ldapHandler) ping() error {
 	healthy := false
 	for k, s := range h.servers {
@@ -408,10 +421,25 @@ func (h ldapHandler) ping() error {
 		dest := fmt.Sprintf("%s:%d", s.Hostname, s.Port)
 		start := time.Now()
 		if h.servers[0].Scheme == "ldaps" {
-			tlsCfg := &tls.Config{}
-			if h.backend.Insecure {
-				tlsCfg.InsecureSkipVerify = true
+			pemData, err := ioutil.ReadFile(h.backend.Pem)
+			if err != nil {
+				h.log.V(6).Info("Failed to read PEM file", "Error :", err)
+				log.Fatalf("Failed to read PEM file: %v", err)
 			}
+			fmt.Println("After reading the PEM File")
+			// Parse PEM data
+			certPool := x509.NewCertPool()
+			ok := certPool.AppendCertsFromPEM(pemData)
+			if !ok {
+				h.log.V(6).Info("Failed to parse PEM data", "Error :", err)
+				log.Fatalf("Failed to parse PEM data")
+			}
+			fmt.Println("After Parsing the PEM File")
+
+			tlsCfg := &tls.Config{}
+			tlsCfg.RootCAs = certPool
+			tlsCfg.InsecureSkipVerify = true
+
 			l, err = ldap.DialTLS("tcp", dest, tlsCfg)
 		} else if h.servers[0].Scheme == "ldap" {
 			l, err = ldap.Dial("tcp", dest)
@@ -442,7 +470,6 @@ func (h ldapHandler) ping() error {
 	return nil
 }
 
-//
 func (h ldapHandler) getBestServer() (ldapBackend, error) {
 	favorite := ldapBackend{}
 	forever, err := time.ParseDuration("30m")
