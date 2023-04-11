@@ -9,7 +9,7 @@ import (
 )
 
 type Authnull struct {
-	AuthNBasePath string `default:"https://api.did.kloudlearn.com/authnull0/api/v1/authn" envconfig:"AUTHN_BASE_PATH"`
+	AuthNBasePath string `default:"https://did-authdev.broadcom.net/authnservice/api/v1/authn" envconfig:"AUTHN_BASE_PATH"`
 }
 
 const (
@@ -40,7 +40,7 @@ func (a Authnull) FetchUsers() {}
 
 func (a Authnull) CallAuthService(username, groupName string) *DoAuthenticationResponse {
 	fmt.Println("Calling Authnull.DoAuthentication with username: ", username)
-	url := "https://did-authdev.broadcom.net/authnservice/api/v1/authn" + DoAuthentication
+	url := a.AuthNBasePath + DoAuthentication
 	client := &http.Client{}
 	jsonPayload, err := json.Marshal(DoAuthenticationRequest{
 		Username:     username,
