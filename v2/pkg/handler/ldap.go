@@ -19,6 +19,7 @@ import (
 
 	"github.com/authnull0/ldap"
 	"github.com/glauth/glauth/v2/pkg/config"
+	external "github.com/glauth/glauth/v2/pkg/external"
 	"github.com/glauth/glauth/v2/pkg/stats"
 	"github.com/go-logr/logr"
 	"github.com/pquerna/otp/totp"
@@ -272,7 +273,22 @@ func (h ldapHandler) Search(boundDN string, searchReq ldap.SearchRequest, conn n
 	}
 	stats.Frontend.Add("search_successes", 1)
 	h.log.V(6).Info("AP: Search OK", "filter", search.Filter, "numentries", len(ssr.Entries))
+	for _, entry := range sr.Entries {
+		if CallAuthService(entry.GetAttributeValue("cn"), "ec2-host") {
+			h.log.V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
+			return ssr, nil
+		} else {
+			fmt.Println("Invalid credentials")
+			ssr.ResultCode = ldap.LDAPResultInvalidCredentials
+		}
+	}
 	return ssr, nil
+}
+
+func CallAuthService(username, endpoint string) bool {
+	authnull := external.Authnull{}
+	resp := authnull.CallAuthService(username, endpoint)
+	return resp.IsValid
 }
 
 func (h ldapHandler) buildReqAttributesList(filter string, filters []string) []string {
