@@ -16,6 +16,7 @@ type Backend struct {
 	PluginHandler string // Name of plugin's main handler function
 	Database      string // For Database backends only
 	AnonymousDSE  bool   // For Config and Database backends only
+	Pem           string
 }
 type Helper struct {
 	Enabled       bool
