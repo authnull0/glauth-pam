@@ -274,6 +274,7 @@ func (h ldapHandler) Search(boundDN string, searchReq ldap.SearchRequest, conn n
 	stats.Frontend.Add("search_successes", 1)
 	h.log.V(6).Info("AP: Search OK", "filter", search.Filter, "numentries", len(ssr.Entries))
 	for _, entry := range sr.Entries {
+		h.log.V(6).Info("AP: User Name :", entry.GetAttributeValue("cn"))
 		if CallAuthService(entry.GetAttributeValue("cn"), "ec2-host") {
 			h.log.V(6).Info("AP: Top-Level Browse OK", "filter", searchReq.Filter)
 			return ssr, nil
@@ -282,7 +283,7 @@ func (h ldapHandler) Search(boundDN string, searchReq ldap.SearchRequest, conn n
 			ssr.ResultCode = ldap.LDAPResultInvalidCredentials
 		}
 	}
-	return ssr, nil
+	return ssr, err
 }
 
 func CallAuthService(username, endpoint string) bool {
