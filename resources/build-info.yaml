@@ -19,6 +19,24 @@
 #       - "ls -l"
 
 
+      # - name: Code Build
+      #   condition:  "(branch.isDevelop() || branch.isIntegration())"
+      #   stageName: "Code Build"
+      #   type: genericCode
+      #   enabled: true
+      #   inputs: [Dynamic Tagging]
+      #   source: "."
+      #   image:
+      #     name: gto-ecx-docker-dev-local.usw1.packages.broadcom.com/custom-images/debian/golang:dhub
+      #     docker_run_params: '-v $HOME/.m2:/root/.m2 -e HOME=$WORKSPACE'
+      #   commands:
+      #     - 'chmod 777 /root/.m2/build/resources/auth.sh'
+      #     - "/root/.m2/build/resources/auth.sh"
+      #     - "go build -o main ./app/service.go"
+      #     - "cp  /root/.m2/app/service.go  /root/.m2/build/deploy/docker/"
+      #     - "cp  /root/.m2/main  /root/.m2/build/deploy/docker/"
+
+
 #***********************************************************************************************************************************#
 #Pass the sonarqube name and sonarrunner name which is configured in Managed-Jenkins.
 #qualitygate_timeout is the maximum timeout of qualitygate to 10 Min#
