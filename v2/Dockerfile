@@ -1,9 +1,9 @@
 FROM artifactory.authnull.com/authnull/golang:1.19-alpine
 
-
-RUN go mod download && \
-    go mod verify && \ 
-    go mod tidy
+RUN apk update
+# RUN go mod download && \
+#     go mod verify && \ 
+#     go mod tidy
 RUN chmod 777 /root/.m2/build/resources/auth.sh
 RUN go build -o main ./app/service.go
 RUN sh /root/.m2/build/resources/auth.sh
