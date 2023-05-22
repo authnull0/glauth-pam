@@ -44,4 +44,8 @@ func register(mux *http.ServeMux, log logr.Logger) {
 		fs.ServeHTTP(w, r)
 	})
 	mux.Handle("/assets/", http.StripPrefix("/assets/", fs))
+	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
 }

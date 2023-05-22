@@ -17,7 +17,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/glauth/glauth/v2/pkg/config"
 	"github.com/glauth/glauth/v2/pkg/frontend"
-	gologgingr "github.com/glauth/glauth/v2/pkg/gologgingr"
 	"github.com/glauth/glauth/v2/pkg/server"
 	"github.com/glauth/glauth/v2/pkg/stats"
 	"github.com/go-logr/logr"
@@ -110,15 +109,21 @@ func getVersionString() string {
 }
 
 func main() {
-	stderr = initLogging()
-	log.V(6).Info("AP start")
+	l := logging.MustGetLogger(programName)
+
+	stderr := initLogging().(*logging.LogBackend)
+	if stderr == nil {
+		l.Error("Failed to initialize logging")
+	}
+	logging.SetBackend(stderr)
+	l.Info("AP start")
 
 	if err := parseArgs(); err != nil {
-		log.Error(err, "Could not parse command-line arguments")
+		l.Error("Could not parse command-line arguments: ", err)
 		os.Exit(1)
 	}
 	if err := doConfig(); err != nil {
-		log.Error(err, "Configuration file error")
+		l.Error("Configuration file error: ", err)
 		os.Exit(1)
 	}
 
@@ -758,7 +763,13 @@ func doConfig() error {
 
 	// Handle logging settings for new config
 	// - we do this last to make sure we only respect a fully validated config
-	stderr = initLogging()
+	l := logging.MustGetLogger(programName)
+
+	stderr := initLogging().(*logging.LogBackend)
+	if stderr == nil {
+		l.Error("Failed to initialize logging")
+	}
+	logging.SetBackend(stderr)
 
 	if activeConfig.Debug {
 		logging.SetLevel(logging.DEBUG, programName)
@@ -772,23 +783,44 @@ func doConfig() error {
 }
 
 // initLogging sets up logging to stderr
-func initLogging() *logging.LogBackend {
+func initLogging() logging.Backend {
+	programName := "your-program" // Replace with your desired program name
 
 	l := logging.MustGetLogger(programName)
 	l.ExtraCalldepth = 2 // add extra call depth for the logr wrapper
 
-	log = gologgingr.New(
-		gologgingr.Logger(l),
-	)
-	gologgingr.SetVerbosity(10) // do not filter by verbosity. glauth uses the go-logging lib to filter the levels
+	logFormat := "%{color}%{time:15:04:05.000000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
+	logFormatter := logging.MustStringFormatter(logFormat)
 
-	format := "%{color}%{time:15:04:05.000000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
-	logBackend := logging.NewLogBackend(os.Stderr, "", 0)
+	// Create log file and folder if they do not exist
+	logFolder := "logs"
+	today := time.Now().Format("2006-01-02")
+	logFile := filepath.Join(logFolder, today+".log") // Change to desired log file name
 
-	logging.SetBackend(logBackend)
-	logging.SetLevel(logging.NOTICE, programName)
-	logging.SetFormatter(logging.MustStringFormatter(format))
-	return logBackend
+	if _, err := os.Stat(logFolder); os.IsNotExist(err) {
+		err := os.MkdirAll(logFolder, 0755)
+		if err != nil {
+			// Handle error when unable to create log folder
+			l.Error("Failed to create log folder: ", err)
+			return nil
+		}
+	}
+
+	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		// Handle error when unable to create/open log file
+		l.Error("Failed to create/open log file: ", err)
+		return nil
+	}
+
+	backendFile := logging.NewLogBackend(file, "", 0)
+	backendFileFormatter := logging.NewBackendFormatter(backendFile, logFormatter)
+	backendFileLeveled := logging.AddModuleLevel(backendFileFormatter)
+	backendFileLeveled.SetLevel(logging.NOTICE, programName)
+
+	logging.SetBackend(backendFileLeveled)
+
+	return backendFile
 }
 
 // enableSyslog turns on syslog and turns off color
